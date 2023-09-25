@@ -11,8 +11,8 @@
 //GNSS Variables
 //#define GNSS_SERIAL Serial1 //Uncomment for GNSS serial communiaction
 //#define GNSS_BAUD_RATE 38400 //Uncomment for GNSS serial communiaction
-#define SAM_M10Q_DEVID_REG
-#define SAM_M10Q_DEVID
+#define SAM_M10Q_DEVID_REG 
+#define SAM_M10Q_DEVID 
 
 
 /* Return status codes for GNSS functions. */

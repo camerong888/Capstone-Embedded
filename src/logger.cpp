@@ -44,27 +44,31 @@ static void setFileName() {
 LOGGER::LOGGER(uint32_t logfrequency = 1000)
 {
     LogFrequency=logfrequency;
+    delay(100);
+}
+
+LOGGER::~LOGGER() {}
+
+LOGGER_STATUS LOGGER::init(){
     if (!SD.begin(BUILTIN_SDCARD))
     {
         DPRINTLN(F("Error initializing SD card logging..."));
         initialized = false;
-        return;
+        return LGR_ERROR_SD_CARD;
     }
-    
+
     //setFileName();
     snprintf(fileName, FILE_NAME_SIZE, "log-%lu.txt", 12345);
-    DPRINT(F("Setup complete. File name is "));
+    DPRINT(F("SD card setup complete. File name is "));
     DPRINTLN(fileName);
 
     
     logFile = SD.open(fileName, FILE_WRITE);
     initialized = true;
 
-    DPRINTLN(F("Initialized SD card logging!"));
-    return;
+    DPRINTLN(F("Initialized SD card!"));
+    return LGR_SUCCESS;
 }
-
-LOGGER::~LOGGER() {}
 
 bool LOGGER::LoggerActive() {
   return initialized;
@@ -132,14 +136,28 @@ LOGGER_STATUS LOGGER::Write() {
   DPRINT(bufLength);
   DPRINT(F(" -- \n"));
 
-  if (logFile) {
+  if (logFile) { //Need to update
     DPRINTLN(F("Writing to SD card..."));
 
     // write all buffered messages to the SD card
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < bufLength; i++) {
+      int writeLength = logFile.print(messageBuf[i].epochTime);
+      // checks for error on write (assumes rest are fine if this passes)
+    //   if (writeLength == 0) {
+    //     DPRINTLN(F("Could not write to SD ... Reseting"));
+    //     Reset();
+    //     return LOGGER_STATUS::LGR_ERROR_SD_CARD;
+    //   }
       logFile.printf("%.3lu", messageBuf[i].epochTime);
       logFile.print(F(" "));
       logFile.print(messageBuf[i].stepCount);
+      logFile.print(F(" ["));
+      for (int j = 0; j < 8; j++) {
+        logFile.print(messageBuf[i].dataBuf[j]);
+        if (j != 8 - 1) {
+          logFile.print(F(","));
+        }
+      }
       logFile.print(F("]\n"));
     }
 

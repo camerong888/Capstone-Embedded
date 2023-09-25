@@ -29,21 +29,21 @@ GNSS::GNSS(){
 }
 
 
-bool GNSS::verifyFunctionality()
-{
-    uint8_t msg[1];
-    uint8_t cmd[1]= {SAM_M10Q_DEVID_REG};
-    I2Cwrite(cmd,1);
-    if(I2Cread(msg,1))
-    {
-        if(msg[0] == SAM_M10Q_DEVID)
-        {
-            return true;
-        }
-        return false;
-    }
-    return false;
-}
+// bool GNSS::verifyFunctionality()
+// {
+//     uint8_t msg[1];
+//     uint8_t cmd[1]= {SAM_M10Q_DEVID_REG};
+//     I2Cwrite(cmd,1);
+//     if(I2Cread(msg,1))
+//     {
+//         if(msg[0] == SAM_M10Q_DEVID)
+//         {
+//             return true;
+//         }
+//         return false;
+//     }
+//     return false;
+// }
 
 
 

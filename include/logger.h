@@ -36,6 +36,8 @@ class LOGGER
 
         ~LOGGER();
 
+        LOGGER_STATUS init();
+
         /**
          * @brief Writes the messages currently buffered to the SD card
          * @return LOGGER_STATUS
