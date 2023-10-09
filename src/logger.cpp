@@ -49,7 +49,7 @@ LOGGER::LOGGER(uint32_t logfrequency = 1000)
 
 LOGGER::~LOGGER() {}
 
-LOGGER_STATUS LOGGER::init(){
+LOGGER_STATUS LOGGER::LOGGER_init(){
     if (!SD.begin(BUILTIN_SDCARD))
     {
         DPRINTLN(F("Error initializing SD card logging..."));

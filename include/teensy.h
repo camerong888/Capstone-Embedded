@@ -10,6 +10,8 @@
 /*************************************************/
 #include <Arduino.h>
 #include <Wire.h>
+#include "debug.h"
+#include "gnss.h"
 
 //Teensy Pinout
 #define RX1 (0)
@@ -61,18 +63,21 @@ typedef enum
 class TEENSY
 {
     private:
-        //SAM_M10Q sam_m10q;
+        GNSS sam_m10q;
         //ROCKBLOCK9603 rockblock9603;
         //BNO085 bno085;
         bool sleepMode;
 
     public:
-        TEENSY();
+        TEENSY(int baudrate);
 
         ~TEENSY();
 
-        //bool initDevices();
+        void GPIO_init();
 
+        void LED_TOGGLE(int led);
+
+        void DEVICE_init();
 };
 
 #endif

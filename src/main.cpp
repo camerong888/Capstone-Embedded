@@ -2,48 +2,65 @@
 #include <logger.h>
 #include <rockblock9603.h>
 #include <debug.h>
+#include <imu.h>
 
 //Global Variables
 #define MIN_LOG_FREQUENCY 1000 // the max time length between logs (in ms)
+#define BAUDRATE 557600
 
 //Helper Functions
-void ORANGE_LED_TOGGLE();
 dataFormat_t* testdata();
 
-TEENSY teensy;
+TEENSY teensy(BAUDRATE);
 LOGGER logger(MIN_LOG_FREQUENCY);
+GNSS gnss;
+IMU imu;
 
 //Runs once:
 void setup() {
-  logger.init();
-  
-  pinMode(ORANGE_LED, OUTPUT);
-  digitalWrite(ORANGE_LED, HIGH);
-  
+  logger.LOGGER_init();
+  teensy.GPIO_init();
+  gnss.Gnss_init();
+  imu.IMU_init();
+  imu.IMU_version();
+  imu.setReports();
+  delay(100);
 }
 
 
 void loop() {
-  ORANGE_LED_TOGGLE();
+  teensy.LED_TOGGLE(ORANGE_LED);
 
-  dataFormat_t *testData = testdata();
-  logger.BufferData(testData);
-  logger.Write();
+  //dataFormat_t *testData = testdata();
+  //logger.BufferData(testData);
+  //logger.Write();
+
+  //GNSS Data Collect
+  //gnss.checkUblox();
+  gnss.getLatitude();
+  delay(50);
+  gnss.getLongitude();
+  delay(50);
+  gnss.getAltitude();
+  delay(50);
+  gnss.getSIV();
+  DPRINTLN("");
+  DPRINTLN("");
+  delay(50);
+
+  //IMU Data Collect
+  imu.wasReset();
+  imu.getSensorEvent(imu.sensorValue);
+  imu.getData();
+  DPRINTLN("");
+
+  //Iridium Check
 
   delay(1000);
 }
 
 
 //Helper function definitions:
-void ORANGE_LED_TOGGLE()
-{
-  if (digitalRead(ORANGE_LED) == HIGH){
-    digitalWrite(ORANGE_LED, LOW);
-  } else
-  {
-    digitalWrite(ORANGE_LED, HIGH);
-  }
-}
 
 dataFormat_t* testdata() {
   static dataFormat_t testData;
@@ -60,5 +77,4 @@ dataFormat_t* testdata() {
 
   return &testData;
 }
-
 
