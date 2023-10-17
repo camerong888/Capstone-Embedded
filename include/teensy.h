@@ -1,7 +1,7 @@
 /**
  * @file teensy.h
  * @author Cameron Gordon
- * @brief 
+ * @brief
  * @date 2023-09-24
  */
 #ifndef TEENSY__H
@@ -13,7 +13,7 @@
 #include "debug.h"
 #include "gnss.h"
 
-//Teensy Pinout
+// Teensy Pinout
 #define RX1 (0)
 #define TX1 (1)
 #define IMU_RST (2)
@@ -45,7 +45,7 @@
 #define RED1 (41)
 #define ROCKBLOCK_ONOFF (40)
 #define GREEN1 (39)
-#define SOC (38) //Analog State of Charge
+#define SOC (38) // Analog State of Charge
 #define ROCKBLOCK_RI (37)
 #define ROCKBLOCK_NETAV (36)
 #define PWR_SRC (35)
@@ -57,27 +57,29 @@ typedef enum
 {
     FAULTED = 1,
     NOT_FAULTED = 0
-}FaultStatus_t;
+} FaultStatus_t;
 
 /*********************************************/
 class TEENSY
 {
-    private:
-        GNSS sam_m10q;
-        //ROCKBLOCK9603 rockblock9603;
-        //BNO085 bno085;
-        bool sleepMode;
+private:
+    bool sleepMode;
+    uint32_t uid[2];
+    unsigned long buttonPressTime; // Store time when button is pressed
+    bool buttonPressed;            // True when button is pressed, false otherwise
+public:
+    TEENSY(int baudrate);
 
-    public:
-        TEENSY(int baudrate);
+    ~TEENSY();
 
-        ~TEENSY();
+    void GPIO_init();
 
-        void GPIO_init();
+    void LED_TOGGLE(int led);
 
-        void LED_TOGGLE(int led);
+    void DEVICE_init();
 
-        void DEVICE_init();
+    uint32_t *deviceID();
+
 };
 
 #endif

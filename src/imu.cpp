@@ -12,14 +12,12 @@ IMU::~IMU()
 
 void IMU::IMU_init()
 {
-    if (!bno08x.begin_I2C())
+    while (!bno08x.begin_I2C())
     {
         DPRINTLN("Failed to find BNO085 Chip...");
+        delay(500);
     }
-    else
-    {
-        DPRINTLN("BNO085 Initalized");
-    }
+    DPRINTLN("BNO085 Initalized");
 }
 
 void IMU::IMU_version()

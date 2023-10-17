@@ -12,9 +12,11 @@
 #ifdef DEBUG 
    #define DPRINT(...)    Serial.print(__VA_ARGS__)     // defines printing as normal
    #define DPRINTLN(...)  Serial.println(__VA_ARGS__)   
+   #define DPRINTF(...)  Serial.printf(__VA_ARGS__)   
 #else
    #define DPRINT(...)     // now defines a blank line
-   #define DPRINTLN(...)  
+   #define DPRINTLN(...)
+   #define DPRINTF(...)  
 #endif
 
 #endif

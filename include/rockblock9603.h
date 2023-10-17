@@ -1,3 +1,38 @@
+
+/**
+ * @file imu.h
+ * @brief Utilities to receive IMU data
+ */
+
+#ifndef ROCKBLOCK_H
+#define ROCKBLOCK_H
+
+#include <IridiumSBD.h>
+#include "teensy.h"
+#include "debug.h"
+#define IridiumSerial Serial2
+#define DIAGNOSTICS false // Change this to see diagnostics
+
+class IRIDIUM{
+  private:
+    int signalQuality = -1;
+    int err;
+    bool sleep;
+  public:
+    void ROCKBLOCK_init();
+    void firmware_version();
+    void test_signal_quality();
+    void send_message(uint32_t uid[], long lat, long lon);
+    bool sleepstatus();
+    void turnoff();
+    void turnon();
+
+};
+
+#endif
+
+//Iridium notes:
+
 /*
 To open up serial connection on MAC:
 /dev/cu.DEVICE
@@ -20,4 +55,3 @@ Response: +SBDIX: 0, 1, 0, 0, 0, 0
 OK
 
 */ 
-

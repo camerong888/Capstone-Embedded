@@ -38,10 +38,10 @@ class GNSS{
 
     GNSS_STATUS Gnss_init();
     bool checkUblox();
-    void getLatitude();
-    void getLongitude();
+    long getLatitude();
+    long getLongitude();
     void getAltitude();
-    void getSIV();
+    byte getSIV();
     
 
 };

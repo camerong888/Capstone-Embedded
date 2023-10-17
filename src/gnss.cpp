@@ -26,49 +26,32 @@ bool GNSS::checkUblox()
     return myGNSS.checkUblox();
 }
 
-void GNSS::getLatitude()
+long GNSS::getLatitude()
 {
     long latitude = myGNSS.getLatitude();
-    Serial.print(F("Lat: "));
-    Serial.print(latitude);
+    DPRINT(F("Lat: "));
+    DPRINT(latitude);
+    return latitude;
 }
-void GNSS::getLongitude()
+long GNSS::getLongitude()
 {
     long longitude = myGNSS.getLongitude();
-    Serial.print(F(" Long: "));
-    Serial.print(longitude);
-    Serial.print(F(" (degrees * 10^-7)"));
+    DPRINT(F(" Long: "));
+    DPRINT(longitude);
+    DPRINTLN(F(" (degrees * 10^-7)"));
+    return longitude;
 }
 void GNSS::getAltitude()
 {
     long altitude = myGNSS.getAltitude();
-    Serial.print(F(" Alt: "));
-    Serial.print(altitude);
-    Serial.print(F(" (mm)"));
+    DPRINT(F(" Alt: "));
+    DPRINT(altitude);
+    DPRINT(F(" (mm)"));
 }
-void GNSS::getSIV()
+byte GNSS::getSIV()
 {
     byte SIV = myGNSS.getSIV();
-    Serial.print(F(" SIV: "));
-    Serial.print(SIV);
+    DPRINT(F(" SIV: "));
+    DPRINTLN(SIV);
+    return SIV;
 }
-
-// #ifdef GNSS_SERIAL{ //Serial init
-//         port = GNSS_SERIAL;
-//         (*port).begin(GNSS_BAUD_RATE);
-//         delay(100);
-//         do {
-//             if (gnss.begin(GNSS_SERIAL)) {
-//             gnss.setSerialRate(GNSS_BAUD_RATE);
-//             gnss.setUART1Output(COM_TYPE_UBX);
-//             gnss.setI2COutput(COM_TYPE_UBX);
-//             gnss.saveConfiguration();
-//             DPRINTLN(F("GNSS module serial connection successfully initialized!"));
-//             return GNSS_STATUS::GNSS_SUCCESS;
-//             }
-//             DPRINTLN(F("Failed to initialize GNSS module..."));
-//             delay(1000);
-//         } while (1);
-//     #else //I2C init
-
-//     #endif
