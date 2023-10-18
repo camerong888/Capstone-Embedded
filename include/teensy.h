@@ -45,7 +45,7 @@
 #define RED1 (41)
 #define ROCKBLOCK_ONOFF (40)
 #define GREEN1 (39)
-#define SOC (38) // Analog State of Charge
+#define SOC (A14) // Analog State of Charge
 #define ROCKBLOCK_RI (37)
 #define ROCKBLOCK_NETAV (36)
 #define PWR_SRC (35)
@@ -79,6 +79,12 @@ public:
     void DEVICE_init();
 
     uint32_t *deviceID();
+
+    void LEDs_off();
+
+    void SOC_LED();
+
+    
 
 };
 

@@ -26,7 +26,7 @@ class IRIDIUM{
     bool sleepstatus();
     void turnoff();
     void turnon();
-
+    int getMessageResult();
 };
 
 #endif

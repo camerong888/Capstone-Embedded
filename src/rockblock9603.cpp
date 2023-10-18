@@ -24,9 +24,7 @@ void IRIDIUM::firmware_version()
 {
     if (sleepstatus())
     {
-        delay(100);
         turnon();
-        delay(100);
     }
     char version[12];
     err = modem.getFirmwareVersion(version, sizeof(version));
@@ -45,9 +43,7 @@ void IRIDIUM::test_signal_quality()
 {
     if (sleepstatus())
     {
-        delay(100);
         turnon();
-        delay(100);
     }
     // This returns a number between 0 and 5.
     // 2 or better is preferred.
@@ -68,9 +64,7 @@ void IRIDIUM::send_message(uint32_t uid[], long lat, long lon)
 {
     if (sleepstatus())
     {
-        delay(100);
         turnon();
-        delay(100);
     }
     DPRINTLN("Trying to send the message.  This might take several minutes.\r\n");
     String message = "uid: " + String(uid[0]) + " " + String(uid[1]) +
@@ -103,10 +97,16 @@ void IRIDIUM::turnon()
 {
     digitalWrite(ROCKBLOCK_ONOFF, LOW);
     sleep = 0;
-    ROCKBLOCK_init();
+    delay(500);
+    //ROCKBLOCK_init();
 }
 
 bool IRIDIUM::sleepstatus()
 {
     return sleep;
+}
+
+int IRIDIUM::getMessageResult()
+{
+    return err;
 }

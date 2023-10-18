@@ -2,7 +2,7 @@
 
 TEENSY::TEENSY(int baudrate)
 {
-  while (!Serial)
+  while (!Serial && 0)
   {
     delay(10);
   }
@@ -84,3 +84,123 @@ void TEENSY::LED_TOGGLE(int led)
   }
 }
 
+void TEENSY::LEDs_off()
+{
+  digitalWrite(GREEN1, HIGH);
+  digitalWrite(RED1, HIGH);
+  digitalWrite(GREEN2, HIGH);
+  digitalWrite(RED2, HIGH);
+  digitalWrite(GREEN3, HIGH);
+  digitalWrite(RED3, HIGH);
+}
+
+void TEENSY::SOC_LED()
+{
+
+  LEDs_off();
+  int socReading = analogRead(SOC); // 2.5V+/- .1V if charging, otherwise SOC = 1/2 of VBAT, where VBAT operates between 2.5V and 4.2V with a nominal voltage of 3.7V.
+  float voltage = (socReading / 1023.0) * 3.35;
+  DPRINT("SOC Voltage: ");
+  DPRINTLN(voltage);
+  if (voltage >= 2.4 && voltage <= 2.6)
+  {
+    digitalWrite(GREEN1, LOW);
+    delay(500);
+    digitalWrite(GREEN2, LOW);
+    delay(500);
+    digitalWrite(GREEN3, LOW);
+    delay(500);
+    digitalWrite(GREEN1, HIGH);
+    digitalWrite(GREEN2, HIGH);
+    digitalWrite(GREEN3, HIGH);
+    delay(500);
+    digitalWrite(GREEN1, LOW);
+    delay(500);
+    digitalWrite(GREEN2, LOW);
+    delay(500);
+    digitalWrite(GREEN3, LOW);
+    delay(500);
+    digitalWrite(GREEN1, HIGH);
+    digitalWrite(GREEN2, HIGH);
+    digitalWrite(GREEN3, HIGH);
+    delay(500);
+    digitalWrite(GREEN1, LOW);
+    delay(500);
+    digitalWrite(GREEN2, LOW);
+    delay(500);
+    digitalWrite(GREEN3, LOW);
+  }
+  else
+  {
+    float batteryPercentage = (voltage - 1.25) / (2.1 - 1.25) * 100;
+    if (batteryPercentage >= 0 && batteryPercentage <= 33)
+    {
+      digitalWrite(GREEN1, LOW);
+      digitalWrite(RED2, LOW);
+      digitalWrite(RED3, LOW);
+      delay(500);
+      digitalWrite(GREEN1, HIGH);
+      digitalWrite(RED2, HIGH);
+      digitalWrite(RED3, HIGH);
+      delay(500);
+      digitalWrite(GREEN1, LOW);
+      digitalWrite(RED2, LOW);
+      digitalWrite(RED3, LOW);
+      delay(500);
+      digitalWrite(GREEN1, HIGH);
+      digitalWrite(RED2, HIGH);
+      digitalWrite(RED3, HIGH);
+      delay(500);
+      digitalWrite(GREEN1, LOW);
+      digitalWrite(RED2, LOW);
+      digitalWrite(RED3, LOW);
+    }
+    else if (batteryPercentage > 33 && batteryPercentage <= 66)
+    {
+      digitalWrite(GREEN1, LOW);
+      digitalWrite(GREEN2, LOW);
+      digitalWrite(RED3, LOW);
+      delay(500);
+      digitalWrite(GREEN1, HIGH);
+      digitalWrite(GREEN2, HIGH);
+      digitalWrite(RED3, HIGH);
+      delay(500);
+      digitalWrite(GREEN1, LOW);
+      digitalWrite(GREEN2, LOW);
+      digitalWrite(RED3, LOW);
+      delay(500);
+      digitalWrite(GREEN1, HIGH);
+      digitalWrite(GREEN2, HIGH);
+      digitalWrite(RED3, HIGH);
+      delay(500);
+      digitalWrite(GREEN1, LOW);
+      digitalWrite(GREEN2, LOW);
+      digitalWrite(RED3, LOW);
+    }
+    else if (batteryPercentage > 66 && batteryPercentage <= 100)
+    {
+      digitalWrite(GREEN1, LOW);
+      digitalWrite(GREEN2, LOW);
+      digitalWrite(GREEN3, LOW);
+      delay(500);
+      digitalWrite(GREEN1, HIGH);
+      digitalWrite(GREEN2, HIGH);
+      digitalWrite(GREEN3, HIGH);
+      delay(500);
+      digitalWrite(GREEN1, LOW);
+      digitalWrite(GREEN2, LOW);
+      digitalWrite(GREEN3, LOW);
+      delay(500);
+      digitalWrite(GREEN1, HIGH);
+      digitalWrite(GREEN2, HIGH);
+      digitalWrite(GREEN3, HIGH);
+      delay(500);
+      digitalWrite(GREEN1, LOW);
+      digitalWrite(GREEN2, LOW);
+      digitalWrite(GREEN3, LOW);
+    }
+  }
+
+  delay(500);
+  LEDs_off();
+}
