@@ -18,8 +18,6 @@ Bounce debouncerBt2 = Bounce();
 void handleBt1StateChange();
 void handleBt2StateChange();
 void handleBt1andBt2Press();
-void handleBt1Press();
-void handleBt2Press();
 
 dataFormat_t *testdata();
 
@@ -70,19 +68,6 @@ void loop()
 {
   debouncerBt1.update();
   debouncerBt2.update();
-  if (debouncerBt1.rose() && debouncerBt2.rose()) // If both buttons are pressed down and held...
-  {
-    delay(5000);
-    handleBt1andBt2Press();
-  }
-  else if (debouncerBt1.rose())
-  {
-    handleBt1Press();
-  }
-  else if (debouncerBt2.rose())
-  {
-    handleBt2Press();
-  }
 
   teensy.LED_TOGGLE(ORANGE_LED);
 
@@ -104,15 +89,15 @@ void loop()
     delay(50);
 
     // IMU Data Collect
-    // imu.wasReset();
+    imu.wasReset();
     imu.getSensorEvent(imu.sensorValue);
     imu.getData();
     DPRINTLN("");
 
     // Iridium Check
     // rockblock.test_signal_quality();
-    DPRINTLN("");
-    // rockblock.turnon();
+    // DPRINTLN("");
+    // rockblock.turnoff();
   }
   delay(1000);
 }
@@ -123,88 +108,102 @@ void loop()
 void handleBt1StateChange()
 {
   debouncerBt1.update();
+  delay(25);
+  if (digitalRead(BT1) == HIGH && digitalRead(BT2) == LOW)
+  {
+    teensy.SOC_LED();
+  }
+  else if (digitalRead(BT1) == HIGH && digitalRead(BT2) == HIGH)
+  {
+    delay(3000);
+    if (digitalRead(BT1) == HIGH && digitalRead(BT2) == HIGH)
+    {
+      handleBt1andBt2Press();
+    }
+  }
 }
 
 void handleBt2StateChange()
 {
   debouncerBt2.update();
-}
-
-void handleBt1andBt2Press()
-{
-  if (digitalRead(BT1) == HIGH && digitalRead(BT2) == HIGH) // If both buttons are still pressed after 5 seconds
+  delay(25);
+  if (digitalRead(BT1) == HIGH && digitalRead(BT2) == LOW)
   {
-    while (gnss.getSIV() == 0)
+    // Toggle Logging
+  }
+  else if (digitalRead(BT1) == HIGH && digitalRead(BT2) == HIGH)
+  {
+    delay(3000);
+    if (digitalRead(BT1) == HIGH && digitalRead(BT2) == HIGH)
     {
-      teensy.LED_TOGGLE(RED1);
-      teensy.LED_TOGGLE(RED2);
-      teensy.LED_TOGGLE(RED3);
-      DPRINT("Waiting for location lock... ");
-      delay(500);
-      teensy.LEDs_off();
-      delay(500);
-    }
-    DPRINT("Sending message...");
-    teensy.LED_TOGGLE(GREEN1);
-    teensy.LED_TOGGLE(GREEN2);
-    teensy.LED_TOGGLE(GREEN3);
-    teensy.LED_TOGGLE(RED1);
-    teensy.LED_TOGGLE(RED2);
-    teensy.LED_TOGGLE(RED3);
-    rockblock.send_message(teensy.deviceID(), gnss.getLatitude(), gnss.getLongitude());
-    if (rockblock.getMessageResult() != ISBD_SUCCESS )// Blink LEDs if it worked or not...
-    {
-      teensy.LEDs_off();
-      teensy.LED_TOGGLE(RED1);
-      teensy.LED_TOGGLE(RED2);
-      teensy.LED_TOGGLE(RED3);
-      delay(500);
-      teensy.LEDs_off();
-      delay(500);
-      teensy.LED_TOGGLE(RED1);
-      teensy.LED_TOGGLE(RED2);
-      teensy.LED_TOGGLE(RED3);
-      delay(500);
-      teensy.LEDs_off();
-      delay(500);
-      teensy.LED_TOGGLE(RED1);
-      teensy.LED_TOGGLE(RED2);
-      teensy.LED_TOGGLE(RED3);
-      delay(500);
-      teensy.LEDs_off();
-    }
-    else
-    {
-      teensy.LEDs_off();
-      teensy.LED_TOGGLE(GREEN1);
-      teensy.LED_TOGGLE(GREEN2);
-      teensy.LED_TOGGLE(GREEN3);
-      delay(500);
-      teensy.LEDs_off();
-      delay(500);
-      teensy.LED_TOGGLE(GREEN1);
-      teensy.LED_TOGGLE(GREEN2);
-      teensy.LED_TOGGLE(GREEN3);
-      delay(500);
-      teensy.LEDs_off();
-      delay(500);
-      teensy.LED_TOGGLE(GREEN1);
-      teensy.LED_TOGGLE(GREEN2);
-      teensy.LED_TOGGLE(GREEN3);
-      delay(500);
-      teensy.LEDs_off();
-      rockblock.turnoff();
+      handleBt1andBt2Press();
     }
   }
 }
 
-void handleBt1Press()
+void handleBt1andBt2Press()
 {
-  teensy.SOC_LED();
-}
-
-void handleBt2Press()
-{
+  while (gnss.getSIV() == 0)
+  {
+    teensy.LED_TOGGLE(RED1);
+    teensy.LED_TOGGLE(RED2);
+    teensy.LED_TOGGLE(RED3);
+    DPRINT("Waiting for location lock... ");
+    delay(500);
+    teensy.LEDs_off();
+    delay(500);
+  }
+  DPRINT("Sending message...");
+  teensy.LED_TOGGLE(GREEN1);
+  teensy.LED_TOGGLE(GREEN2);
+  teensy.LED_TOGGLE(GREEN3);
+  teensy.LED_TOGGLE(RED1);
+  teensy.LED_TOGGLE(RED2);
+  teensy.LED_TOGGLE(RED3);
+  rockblock.send_message(teensy.deviceID(), gnss.getLatitude(), gnss.getLongitude());
+  if (rockblock.getMessageResult() != ISBD_SUCCESS) // Blink LEDs if it worked or not...
+  {
+    teensy.LEDs_off();
+    teensy.LED_TOGGLE(RED1);
+    teensy.LED_TOGGLE(RED2);
+    teensy.LED_TOGGLE(RED3);
+    delay(500);
+    teensy.LEDs_off();
+    delay(500);
+    teensy.LED_TOGGLE(RED1);
+    teensy.LED_TOGGLE(RED2);
+    teensy.LED_TOGGLE(RED3);
+    delay(500);
+    teensy.LEDs_off();
+    delay(500);
+    teensy.LED_TOGGLE(RED1);
+    teensy.LED_TOGGLE(RED2);
+    teensy.LED_TOGGLE(RED3);
+    delay(500);
+    teensy.LEDs_off();
+  }
+  else
+  {
+    teensy.LEDs_off();
+    teensy.LED_TOGGLE(GREEN1);
+    teensy.LED_TOGGLE(GREEN2);
+    teensy.LED_TOGGLE(GREEN3);
+    delay(500);
+    teensy.LEDs_off();
+    delay(500);
+    teensy.LED_TOGGLE(GREEN1);
+    teensy.LED_TOGGLE(GREEN2);
+    teensy.LED_TOGGLE(GREEN3);
+    delay(500);
+    teensy.LEDs_off();
+    delay(500);
+    teensy.LED_TOGGLE(GREEN1);
+    teensy.LED_TOGGLE(GREEN2);
+    teensy.LED_TOGGLE(GREEN3);
+    delay(500);
+    teensy.LEDs_off();
+    rockblock.turnoff();
+  }
 }
 
 dataFormat_t *testdata()
