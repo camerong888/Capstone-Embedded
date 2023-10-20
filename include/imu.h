@@ -17,7 +17,7 @@
 
 class IMU{
   private:
-    
+    uint32_t StepCount;
   public:
     sh2_SensorValue_t sensorValue;
     IMU();
@@ -29,6 +29,7 @@ class IMU{
     void getSensorEvent(sh2_SensorValue_t &sensorValue);
     void printActivity(uint8_t activity_id);
     void getData();
+    uint32_t getStepCount();
 };
 
 #endif

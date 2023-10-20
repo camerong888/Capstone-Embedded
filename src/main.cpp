@@ -6,9 +6,8 @@
 #include <Bounce2.h>
 
 // Global Variables
-#define MIN_LOG_FREQUENCY 1000 // the max time length between logs (in ms)
+#define MIN_LOG_FREQUENCY 10000 // the max time length between logs (in ms)
 #define BAUDRATE 557600
-#define TESTING 1
 
 // Debounce objects
 Bounce debouncerBt1 = Bounce();
@@ -17,9 +16,12 @@ Bounce debouncerBt2 = Bounce();
 // Helper Functions
 void handleBt1StateChange();
 void handleBt2StateChange();
-void handleBt1andBt2Press();
+void SOS_Sequence();
+void waitForLocationLock();
+void CreateNewFile();
 
-dataFormat_t *testdata();
+dataFormat_t data;
+
 
 // Module Objects
 TEENSY teensy(BAUDRATE);
@@ -40,6 +42,7 @@ void setup()
   delay(100);
   // GNSS Init
   gnss.Gnss_init();
+  gnss.setNavigationFrequency(1); //Produce one navigation solution per second
   delay(250);
   // IMU Init
   imu.IMU_init();
@@ -56,9 +59,9 @@ void setup()
   rockblock.turnoff();
   // BT Debounce Handeling
   debouncerBt1.attach(BT1, INPUT_PULLUP);
-  debouncerBt1.interval(5);               // Set debounce interval to 5ms
+  debouncerBt1.interval(10);               // Set debounce interval to 5ms
   debouncerBt2.attach(BT2, INPUT_PULLUP); // Same for BT2
-  debouncerBt2.interval(5);
+  debouncerBt2.interval(10);
   // Button Interrupt Handling
   attachInterrupt(digitalPinToInterrupt(BT1), handleBt1StateChange, CHANGE);
   attachInterrupt(digitalPinToInterrupt(BT2), handleBt2StateChange, CHANGE);
@@ -71,34 +74,27 @@ void loop()
 
   teensy.LED_TOGGLE(ORANGE_LED);
 
-  if (TESTING)
+  imu.getSensorEvent(imu.sensorValue);
+  imu.getData();
+
+  String date = gnss.getDate();
+  data.gnssFixType = gnss.getFixType();
+  data.iridiumMessageCount = rockblock.getNumberMessagesSent();
+  data.epochTime = gnss.getUnixEpoch();
+  data.latitude = gnss.getLatitude();
+  data.longitude = gnss.getLongitude();
+  data.altitude = gnss.getAltitude();
+  data.speed = gnss.getGroundSpeed();
+  data.heading = gnss.getHeading();
+  data.stepCount = imu.getStepCount();
+
+  if (logger.Log_Status())
   {
-    // dataFormat_t *testData = testdata();
-    // logger.BufferData(testData);
-    // logger.Write();
-
-    // GNSS Data Collect
-    gnss.getLatitude();
-    delay(50);
-    gnss.getLongitude();
-    delay(50);
-    gnss.getAltitude();
-    delay(50);
-    gnss.getSIV();
-    DPRINTLN("");
-    delay(50);
-
-    // IMU Data Collect
-    imu.wasReset();
-    imu.getSensorEvent(imu.sensorValue);
-    imu.getData();
-    DPRINTLN("");
-
-    // Iridium Check
-    // rockblock.test_signal_quality();
-    // DPRINTLN("");
-    // rockblock.turnoff();
+    logger.BufferData(&data);
+    logger.Write(date);
   }
+
+  gnss.flushPVT(); // Marks data as read/stale
   delay(1000);
 }
 
@@ -118,7 +114,7 @@ void handleBt1StateChange()
     delay(3000);
     if (digitalRead(BT1) == HIGH && digitalRead(BT2) == HIGH)
     {
-      handleBt1andBt2Press();
+      SOS_Sequence();
     }
   }
 }
@@ -127,23 +123,73 @@ void handleBt2StateChange()
 {
   debouncerBt2.update();
   delay(25);
-  if (digitalRead(BT1) == HIGH && digitalRead(BT2) == LOW)
+  if (digitalRead(BT1) == LOW && digitalRead(BT2) == HIGH)
   {
-    // Toggle Logging
+    if (logger.isOpen()) // Checks if file is open
+    {
+      if (logger.Log_Status())
+      {
+        // Pause logging
+        logger.pauseLogging();
+        teensy.blinkRedLEDs();
+        delay(100);
+      }
+      else
+      {
+        // Resume logging
+        logger.beginLogging();
+        teensy.blinkGreenLEDs();
+        delay(100);
+      }
+    }
+    else
+    {
+      CreateNewFile();
+    }
   }
   else if (digitalRead(BT1) == HIGH && digitalRead(BT2) == HIGH)
   {
     delay(3000);
     if (digitalRead(BT1) == HIGH && digitalRead(BT2) == HIGH)
     {
-      handleBt1andBt2Press();
+      SOS_Sequence();
     }
   }
 }
 
-void handleBt1andBt2Press()
+void SOS_Sequence()
 {
-  while (gnss.getSIV() == 0)
+  waitForLocationLock();
+  DPRINT("Sending message...");
+  teensy.LED_TOGGLE(GREEN1);
+  teensy.LED_TOGGLE(GREEN2);
+  teensy.LED_TOGGLE(GREEN3);
+  teensy.LED_TOGGLE(RED1);
+  teensy.LED_TOGGLE(RED2);
+  teensy.LED_TOGGLE(RED3);
+  rockblock.send_message(gnss.getLatitude(), gnss.getLongitude());
+  if (rockblock.getMessageResult() != ISBD_SUCCESS) // Blink LEDs if it worked or not...
+  {
+    teensy.blinkRedLEDs();
+  }
+  else
+  {
+    teensy.blinkGreenLEDs();
+  }
+}
+
+void CreateNewFile()
+{
+  waitForLocationLock();
+  DPRINT(gnss.getFixType());
+  String currentDate = gnss.getDate();
+  logger.LOGGER_newFile(currentDate);
+  logger.beginLogging();
+}
+
+void waitForLocationLock()
+{
+  while (gnss.getFixType() < 3)
   {
     teensy.LED_TOGGLE(RED1);
     teensy.LED_TOGGLE(RED2);
@@ -153,74 +199,6 @@ void handleBt1andBt2Press()
     teensy.LEDs_off();
     delay(500);
   }
-  DPRINT("Sending message...");
-  teensy.LED_TOGGLE(GREEN1);
-  teensy.LED_TOGGLE(GREEN2);
-  teensy.LED_TOGGLE(GREEN3);
-  teensy.LED_TOGGLE(RED1);
-  teensy.LED_TOGGLE(RED2);
-  teensy.LED_TOGGLE(RED3);
-  rockblock.send_message(teensy.deviceID(), gnss.getLatitude(), gnss.getLongitude());
-  if (rockblock.getMessageResult() != ISBD_SUCCESS) // Blink LEDs if it worked or not...
-  {
-    teensy.LEDs_off();
-    teensy.LED_TOGGLE(RED1);
-    teensy.LED_TOGGLE(RED2);
-    teensy.LED_TOGGLE(RED3);
-    delay(500);
-    teensy.LEDs_off();
-    delay(500);
-    teensy.LED_TOGGLE(RED1);
-    teensy.LED_TOGGLE(RED2);
-    teensy.LED_TOGGLE(RED3);
-    delay(500);
-    teensy.LEDs_off();
-    delay(500);
-    teensy.LED_TOGGLE(RED1);
-    teensy.LED_TOGGLE(RED2);
-    teensy.LED_TOGGLE(RED3);
-    delay(500);
-    teensy.LEDs_off();
-  }
-  else
-  {
-    teensy.LEDs_off();
-    teensy.LED_TOGGLE(GREEN1);
-    teensy.LED_TOGGLE(GREEN2);
-    teensy.LED_TOGGLE(GREEN3);
-    delay(500);
-    teensy.LEDs_off();
-    delay(500);
-    teensy.LED_TOGGLE(GREEN1);
-    teensy.LED_TOGGLE(GREEN2);
-    teensy.LED_TOGGLE(GREEN3);
-    delay(500);
-    teensy.LEDs_off();
-    delay(500);
-    teensy.LED_TOGGLE(GREEN1);
-    teensy.LED_TOGGLE(GREEN2);
-    teensy.LED_TOGGLE(GREEN3);
-    delay(500);
-    teensy.LEDs_off();
-    rockblock.turnoff();
-  }
-}
-
-dataFormat_t *testdata()
-{
-  static dataFormat_t testData;
-
-  // Manually setting some test data
-  testData.epochTime = 1632674911 + millis();         // Unix time stamp for example
-  testData.stepCount = 10 + millis();                 // Step count as an example
-  testData.dataBuf[LATITUDE] = 42300000 + millis();   // Latitude in micro degrees (e.g., 42.3 degrees)
-  testData.dataBuf[LONGITUDE] = -71060000 + millis(); // Longitude in micro degrees (e.g., -71.06 degrees)
-  testData.dataBuf[SPEED] = 50 + millis();            // Speed in km/h for example
-  testData.dataBuf[HEADING] = 180 + millis();         // Heading in degrees
-  testData.dataBuf[ALTITUDE] = 200 + millis();        // Altitude in meters
-  testData.dataBuf[IRIDIUM_INDICATOR] = 1;            // Iridium message indicator
-
-  return &testData;
 }
 
 #if DIAGNOSTICS

@@ -9,23 +9,16 @@
 
 #include <stdint.h>
 
-enum DataIndices {
-  LATITUDE,
-  LONGITUDE,
-  SPEED,
-  HEADING,
-  ALTITUDE,
-  IRIDIUM_INDICATOR,
-
-  // more fields
-};
-
-
-/* Message structure used throughout the system. */
 typedef struct {
-  uint32_t epochTime;
-  uint32_t stepCount;
-  uint32_t dataBuf[8]; //DataIndices
+  uint8_t  gnssFixType;          // GNSS fix type (data type: byte)
+  uint8_t  iridiumMessageCount;  // Iridium Message Count (data type: uint8_t)
+  uint32_t epochTime;            // epoch Time (data type: uint32_t)
+  int32_t  latitude;             // Latitude (data type: int32_t)
+  int32_t  longitude;            // Longitude (data type: int32_t)
+  int32_t  altitude;             // Altitude (data type: int32_t)
+  int32_t  speed;                // Speed (data type: int32_t)
+  int32_t  heading;              // Heading (data type: int32_t)
+  uint32_t stepCount;            // stepCount (data type: uint32_t)
 } dataFormat_t;
 
 

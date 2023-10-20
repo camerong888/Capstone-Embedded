@@ -1,7 +1,7 @@
 /**
  * @file logger.h
  * @author Cameron Gordon
- * @brief 
+ * @brief
  * @date 2023-09-24
  */
 #ifndef LOGGER__H
@@ -12,58 +12,63 @@
 #include <SPI.h>
 
 /*********************************************/
-typedef enum {
-  LGR_SUCCESS           = 0,
+typedef enum
+{
+  LGR_SUCCESS = 0,
   LGR_ERROR_BUFFER_FULL = 1,
-  LGR_ERROR_SD_CARD     = 2,
-  LGR_ERROR_NO_WRITE    = 3
+  LGR_ERROR_SD_CARD = 2,
+  LGR_ERROR_NO_WRITE = 3
 } LOGGER_STATUS;
 
 /*********************************************/
 class LOGGER
 {
-    private:
-        uint32_t LogFrequency = 1000;
-        uint32_t LastLogTime = 0;
-        bool initialized = false;
-    public:
-        /**
-         * @brief Initializes the SD logging functionality
-         * @note sets logFrequency minimum rate at which to log the buffered messages
-         * @return LOGGER_STATUS
-         */
-        LOGGER(uint32_t logfrequency);
+private:
+  uint32_t LogFrequency = 1000;
+  uint32_t LastLogTime = 0;
+  bool initialized = false;
+  bool log;
+  
+public:
+  LOGGER(uint32_t logfrequency);
 
-        ~LOGGER();
+  ~LOGGER();
 
-        LOGGER_STATUS LOGGER_init();
+  LOGGER_STATUS LOGGER_init();
 
-        /**
-         * @brief Writes the messages currently buffered to the SD card
-         * @return LOGGER_STATUS
-         */
-        LOGGER_STATUS Write();
+  void LOGGER_newFile(String date);
 
-        /**
-         * @brief Resets the buffers, SD card
-         * @return LOGGER_STATUS
-         */
-        LOGGER_STATUS Reset();
+  /**
+   * @brief Writes the messages currently buffered to the SD card
+   * @return LOGGER_STATUS
+   */
+  LOGGER_STATUS Write(String date);
 
-        /**
-         * @brief Adds the given message to the log buffer.
-         * 
-         * @param data pointer to the data
-         * @return LOGGER_STATUS
-         */
-        LOGGER_STATUS BufferData(dataFormat_t *data);
+  /**
+   * @brief Resets the buffers, SD card
+   * @return LOGGER_STATUS
+   */
+  LOGGER_STATUS Reset();
 
-        /**
-         * @brief Finds whether the logger is currently logging messages
-         * @return true when active, false otherwise
-         */
-        bool LoggerActive();
+  /**
+   * @brief Adds the given message to the log buffer.
+   *
+   * @param data pointer to the data
+   * @return LOGGER_STATUS
+   */
+  LOGGER_STATUS BufferData(dataFormat_t *data);
 
+  /**
+   * @brief Finds whether the logger is currently logging messages
+   * @return true when active, false otherwise
+   */
+  bool Log_Status();
+
+  void beginLogging();
+
+  void pauseLogging();
+
+  bool isOpen();
 };
 
 #endif

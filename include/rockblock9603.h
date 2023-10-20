@@ -18,15 +18,17 @@ class IRIDIUM{
     int signalQuality = -1;
     int err;
     bool sleep;
+    uint8_t NumberMessagesSent;
   public:
     void ROCKBLOCK_init();
     void firmware_version();
     void test_signal_quality();
-    void send_message(uint32_t uid[], long lat, long lon);
+    void send_message(long lat, long lon);
     bool sleepstatus();
     void turnoff();
     void turnon();
     int getMessageResult();
+    uint8_t getNumberMessagesSent();
 };
 
 #endif

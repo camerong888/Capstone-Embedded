@@ -84,7 +84,9 @@ public:
 
     void SOC_LED();
 
-    
+    void blinkRedLEDs();
+
+    void blinkGreenLEDs();
 
 };
 

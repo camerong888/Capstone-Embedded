@@ -17,7 +17,7 @@ void IRIDIUM::ROCKBLOCK_init()
             DPRINTLN("No modem detected: check wiring.");
         return;
     }
-    delay(100);
+    NumberMessagesSent = 0;
 }
 
 void IRIDIUM::firmware_version()
@@ -60,15 +60,14 @@ void IRIDIUM::test_signal_quality()
     DPRINTLN(".");
 }
 
-void IRIDIUM::send_message(uint32_t uid[], long lat, long lon)
+void IRIDIUM::send_message(long lat, long lon)
 {
     if (sleepstatus())
     {
         turnon();
     }
     DPRINTLN("Trying to send the message.  This might take several minutes.\r\n");
-    String message = "uid: " + String(uid[0]) + " " + String(uid[1]) +
-                     "; lat: " + String(lat) +
+    String message = "lat: " + String(lat) +
                      "; lon: " + String(lon);
     DPRINT("Message: ");
     DPRINTLN(message);
@@ -84,6 +83,7 @@ void IRIDIUM::send_message(uint32_t uid[], long lat, long lon)
     else
     {
         DPRINTLN("Hey, it worked!");
+        NumberMessagesSent = NumberMessagesSent + 1;
     }
 }
 
@@ -109,4 +109,9 @@ bool IRIDIUM::sleepstatus()
 int IRIDIUM::getMessageResult()
 {
     return err;
+}
+
+uint8_t IRIDIUM::getNumberMessagesSent()
+{
+    return NumberMessagesSent;
 }

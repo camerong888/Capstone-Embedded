@@ -2,98 +2,94 @@
 #include "debug.h"
 #include "gnss.h"
 
-#define MAX_BUFFERED_MESSAGES 50 // max number of buffered messages before logging to SD card
+#define MAX_BUFFERED_MESSAGES 50    // max number of buffered messages before logging to SD card
 #define MAX_LOG_FILE_SIZE 50000000U // 50 Megabytes
-#define FILE_NAME_SIZE 19 // 10 for timestamp, 8 for text, 1 for termination
+#define FILE_NAME_SIZE 21           // 10 for timestamp, 8 for text, 1 for termination
 
-File logFile; // file logging object
+File logFile;                  // file logging object
 char fileName[FILE_NAME_SIZE]; // format is log-1652888997.txt
 
 // Buffer information (use 2 buffers to prevent overwrites during logging delays)
 int buf1Length = 0;
 int buf2Length = 0;
-dataFormat_t messageBuf1[MAX_BUFFERED_MESSAGES]; 
-dataFormat_t messageBuf2[MAX_BUFFERED_MESSAGES]; 
+dataFormat_t messageBuf1[MAX_BUFFERED_MESSAGES];
+dataFormat_t messageBuf2[MAX_BUFFERED_MESSAGES];
 bool usingBuf1 = true;
 
 /**
- * @brief Sets the logging file name using the format log-NUM.txt, where NUM is either the current 
+ * @brief Sets the logging file name using the format log-NUM.txt, where NUM is either the current
  *        unix time if using the RTC or a valid numeric index starting from 0.
- * 
+ *
  */
-static void setFileName() {
-  uint32_t fileNum = 0;
-  uint32_t currentTime;
-  GNSS* gnss;
-//   GNSS_STATUS timeStatus = gnss->GnssGetEpochTime();
-//   if (timeStatus == GNSS_STATUS::GNSS_SUCCESS) {
-//     fileNum = gnss->accessepochTime();
-//   } else {
-//     DPRINTLN("File not named from time...");
-//   }
-//   delete gnss;
-
-  snprintf(fileName, FILE_NAME_SIZE, "log-%lu.txt", fileNum);
-  while (SD.exists(fileName)) {
+void LOGGER::LOGGER_newFile(String date)
+{
+  uint32_t fileNum = 1;
+  snprintf(fileName, FILE_NAME_SIZE, "%s_Trip_#%lu.txt", date.c_str(), fileNum);
+  while (SD.exists(fileName))
+  {
     fileNum++;
-    snprintf(fileName, FILE_NAME_SIZE, "log-%lu.txt", fileNum); 
+    snprintf(fileName, FILE_NAME_SIZE, "%s_Trip_#%lu.txt", date.c_str(), fileNum);
   }
+  DPRINT(F("SD card file created. File name is "));
+  DPRINTLN(fileName);
+
+  logFile = SD.open(fileName, FILE_WRITE);
 }
 
-
-LOGGER::LOGGER(uint32_t logfrequency = 1000)
+LOGGER::LOGGER(uint32_t logfrequency = 10000)
 {
-    LogFrequency=logfrequency;
-    delay(100);
+  LogFrequency = logfrequency;
+  delay(100);
 }
 
 LOGGER::~LOGGER() {}
 
-LOGGER_STATUS LOGGER::LOGGER_init(){
-    if (!SD.begin(BUILTIN_SDCARD))
-    {
-        DPRINTLN(F("Error initializing SD card logging..."));
-        initialized = false;
-        return LGR_ERROR_SD_CARD;
-    }
+LOGGER_STATUS LOGGER::LOGGER_init()
+{
+  if (!SD.begin(BUILTIN_SDCARD))
+  {
+    DPRINTLN(F("Error initializing SD card logging..."));
+    initialized = false;
+    return LGR_ERROR_SD_CARD;
+  }
 
-    //setFileName();
-    snprintf(fileName, FILE_NAME_SIZE, "log-%lu.txt", 12345);
-    DPRINT(F("SD card setup complete. File name is "));
-    DPRINTLN(fileName);
+  initialized = true;
 
-    
-    logFile = SD.open(fileName, FILE_WRITE);
-    initialized = true;
-
-    DPRINTLN(F("Initialized SD card!"));
-    return LGR_SUCCESS;
+  DPRINTLN(F("Initialized SD card!"));
+  return LGR_SUCCESS;
 }
 
-bool LOGGER::LoggerActive() {
-  return initialized;
+bool LOGGER::Log_Status()
+{
+  return log;
 }
 
-LOGGER_STATUS LOGGER::BufferData(dataFormat_t *message) {
-  if (!initialized) {
+LOGGER_STATUS LOGGER::BufferData(dataFormat_t *message)
+{
+  if (!initialized)
+  {
     return LOGGER_STATUS::LGR_ERROR_SD_CARD;
   }
 
   noInterrupts();
   // find appropriate buffer to use
-  dataFormat_t *messageBuf = usingBuf1 ? messageBuf1 : messageBuf2; 
+  dataFormat_t *messageBuf = usingBuf1 ? messageBuf1 : messageBuf2;
   int bufLength = usingBuf1 ? buf1Length : buf2Length;
 
-  if (bufLength >= MAX_BUFFERED_MESSAGES) {
+  if (bufLength >= MAX_BUFFERED_MESSAGES)
+  {
     DPRINTLN(F("Tried to write to already full buffer"));
     return LOGGER_STATUS::LGR_ERROR_BUFFER_FULL;
   }
 
   messageBuf[bufLength] = *message;
 
-  if (usingBuf1) {
+  if (usingBuf1)
+  {
     buf1Length++;
-  } else {
+  }
+  else
+  {
     buf2Length++;
   }
   interrupts();
@@ -101,82 +97,135 @@ LOGGER_STATUS LOGGER::BufferData(dataFormat_t *message) {
   return LOGGER_STATUS::LGR_SUCCESS;
 }
 
-LOGGER_STATUS LOGGER::Write() {
-  if (!initialized) {
-    DPRINTLN("Cannot write to SD card, not initalized...");
+LOGGER_STATUS LOGGER::Write(String date)
+{
+  if (!initialized)
+  {
+    DPRINTLN("Cannot write to SD card, not initialized...");
     return LOGGER_STATUS::LGR_ERROR_SD_CARD;
   }
 
   // find appropriate buffer to use
-  dataFormat_t *messageBuf = usingBuf1 ? messageBuf1 : messageBuf2; 
+  dataFormat_t *messageBuf = usingBuf1 ? messageBuf1 : messageBuf2;
   int bufLength = usingBuf1 ? buf1Length : buf2Length;
 
   // only write on certain conditions
-  if ((millis() - LastLogTime) <= LogFrequency && bufLength < MAX_BUFFERED_MESSAGES) {
+  if ((millis() - LastLogTime) <= LogFrequency && bufLength < MAX_BUFFERED_MESSAGES)
+  {
     return LOGGER_STATUS::LGR_ERROR_NO_WRITE;
   }
 
   usingBuf1 = !usingBuf1; // Switch main log buffer during write process
 
   // create a new file if current one is too large
-  if (logFile.size() > MAX_LOG_FILE_SIZE) {
+  if (logFile.size() > MAX_LOG_FILE_SIZE)
+  {
     DPRINTLN("Max File size reached, creating a new log file...");
     logFile.close();
-    setFileName();
+    LOGGER_newFile(date);
     logFile = SD.open(fileName, FILE_WRITE);
   }
 
   DPRINT(F(" -- "));
   DPRINT(F("Added from buf "));
-  if (usingBuf1) {
+  if (usingBuf1)
+  {
     DPRINT(F("2: "));
-  } else {
+  }
+  else
+  {
     DPRINT(F("1: "));
   }
   DPRINT(bufLength);
   DPRINT(F(" -- \n"));
 
-  if (logFile) { //Need to update
+  if (logFile)
+  { // Need to update
     DPRINTLN(F("Writing to SD card..."));
 
     // write all buffered messages to the SD card
-    for (int i = 0; i < bufLength; i++) {
-      int writeLength = logFile.print(messageBuf[i].epochTime);
-      // checks for error on write (assumes rest are fine if this passes)
-    //   if (writeLength == 0) {
-    //     DPRINTLN(F("Could not write to SD ... Reseting"));
-    //     Reset();
-    //     return LOGGER_STATUS::LGR_ERROR_SD_CARD;
-    //   }
+    for (int i = 0; i < bufLength; i++)
+    {
+      logFile.print(messageBuf[i].gnssFixType);
+      logFile.print(F(","));
+
+      logFile.print(messageBuf[i].iridiumMessageCount);
+      logFile.print(F(","));
+
       logFile.printf("%.3lu", messageBuf[i].epochTime);
-      logFile.print(F(" "));
+      logFile.print(F(","));
+
+      logFile.printf("%ld", messageBuf[i].latitude); // Considering Latitude is int32_t
+      logFile.print(F(","));
+
+      logFile.printf("%ld", messageBuf[i].longitude); // Considering Longitude is int32_t
+      logFile.print(F(","));
+
+      logFile.printf("%ld", messageBuf[i].altitude); // Considering Altitude is int32_t
+      logFile.print(F(","));
+
+      logFile.printf("%ld", messageBuf[i].speed); // Considering Speed is int32_t
+      logFile.print(F(","));
+
+      logFile.printf("%ld", messageBuf[i].heading); // Considering Heading is int32_t
+      logFile.print(F(","));
+
       logFile.print(messageBuf[i].stepCount);
-      logFile.print(F(" ["));
-      for (int j = 0; j < 8; j++) {
-        logFile.print(messageBuf[i].dataBuf[j]);
-        if (j != 8 - 1) {
-          logFile.print(F(","));
-        }
-      }
-      logFile.print(F("]\n"));
+      // continue for all items in struct
+      logFile.print(F("\n"));
     }
 
     LastLogTime = millis();
-    
+
     // clear bufLength variables (must clear the opposite of whatever one is in use)
-    if (usingBuf1) {
+    if (usingBuf1)
+    {
       DPRINTLN(F("Reset buffer 2"));
       buf2Length = 0;
-    } else {
+    }
+    else
+    {
       DPRINTLN(F("Reset buffer 1"));
       buf1Length = 0;
     }
     logFile.flush();
     return LOGGER_STATUS::LGR_SUCCESS;
-  } 
-  else {
+  }
+  else
+  {
     DPRINTLN(F("Could not open file on SD card"));
-    //Reset();
+    // Reset();
     return LOGGER_STATUS::LGR_ERROR_SD_CARD;
   }
+}
+
+void LOGGER::beginLogging()
+{
+  if (log)
+  {
+    DPRINTLN("Already Logging");
+  }
+  else
+  {
+    log = 1;
+    DPRINTLN("Resuming logging...");
+  }
+}
+
+void LOGGER::pauseLogging()
+{
+  if (!log)
+  {
+    DPRINTLN("Already Paused Logging");
+  }
+  else
+  {
+    log = 0;
+    DPRINTLN("Pausing logging...");
+  }
+}
+
+bool LOGGER::isOpen()
+{
+  return static_cast<bool>(logFile);
 }

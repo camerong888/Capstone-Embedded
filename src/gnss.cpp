@@ -26,27 +26,38 @@ bool GNSS::checkUblox()
     return myGNSS.checkUblox();
 }
 
-long GNSS::getLatitude()
+int32_t GNSS::getLatitude()
 {
-    long latitude = myGNSS.getLatitude();
+    int32_t latitude = myGNSS.getLatitude();
     DPRINT(F("Lat: "));
     DPRINT(latitude);
     return latitude;
 }
-long GNSS::getLongitude()
+int32_t GNSS::getLongitude()
 {
-    long longitude = myGNSS.getLongitude();
+    int32_t longitude = myGNSS.getLongitude();
     DPRINT(F(" Long: "));
     DPRINT(longitude);
     DPRINTLN(F(" (degrees * 10^-7)"));
     return longitude;
 }
-void GNSS::getAltitude()
+int32_t GNSS::getAltitude()
 {
-    long altitude = myGNSS.getAltitude();
+    int32_t altitude = myGNSS.getAltitude();
     DPRINT(F(" Alt: "));
     DPRINT(altitude);
     DPRINT(F(" (mm)"));
+    return altitude;
+}
+int32_t GNSS::getGroundSpeed()
+{
+    int32_t speed = myGNSS.getGroundSpeed();
+    return speed;
+}
+int32_t GNSS::getHeading()
+{
+    int32_t heading = myGNSS.getHeading();
+    return heading;
 }
 byte GNSS::getSIV()
 {
@@ -54,4 +65,54 @@ byte GNSS::getSIV()
     DPRINT(F(" SIV: "));
     DPRINTLN(SIV);
     return SIV;
+}
+
+void GNSS::flushPVT()
+{
+    myGNSS.flushPVT();
+}
+
+String GNSS::getDate()
+{
+    int day = myGNSS.getDay();
+    int month = myGNSS.getMonth();
+    int year = myGNSS.getYear() % 100;
+    char date[9]; // MM-DD-YY\0
+    snprintf(date, sizeof(date), "%02d-%02d-%02d", month, day, year);
+    DPRINT(month);
+    DPRINT("-");
+    DPRINT(day);
+    DPRINT("-");
+    DPRINTLN(year);
+    return String(date);
+}
+
+void GNSS::getTime()
+{
+    int UTChour = myGNSS.getHour();
+    int ESThour = UTChour - 4;
+    if (ESThour < 0) {
+        ESThour += 24;
+    }
+    DPRINT(ESThour);
+    DPRINT(":");
+    DPRINT(myGNSS.getMinute());
+    DPRINT(":");
+    DPRINTLN(myGNSS.getSecond());
+}
+
+byte GNSS::getFixType()
+{
+    //DPRINTLN(myGNSS.getFixType());
+    return myGNSS.getFixType();
+}
+
+void GNSS::setNavigationFrequency(int n = 1)
+{
+    myGNSS.setNavigationFrequency(n);
+}
+
+uint32_t GNSS::getUnixEpoch()
+{
+    return myGNSS.getUnixEpoch();
 }

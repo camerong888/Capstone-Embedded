@@ -38,10 +38,27 @@ class GNSS{
 
     GNSS_STATUS Gnss_init();
     bool checkUblox();
-    long getLatitude();
-    long getLongitude();
-    void getAltitude();
+    /*
+    The fix type is as follows:
+    0 = no fix
+    1 = dead reckoning (requires external sensors)
+    2 = 2D (not quite enough satellites in view)
+    3 = 3D (the standard fix)
+    4 = GNSS + dead reckoning (requires external sensors)
+    5 = Time fix only
+    */
+    byte getFixType();
+    int32_t getLatitude();
+    int32_t getLongitude();
+    int32_t getAltitude();
+    int32_t getGroundSpeed();
+    int32_t getHeading();
     byte getSIV();
+    String getDate();
+    void getTime();
+    uint32_t getUnixEpoch();
+    void flushPVT();
+    void setNavigationFrequency(int n);
     
 
 };
