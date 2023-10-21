@@ -98,7 +98,7 @@ void IRIDIUM::turnon()
     digitalWrite(ROCKBLOCK_ONOFF, LOW);
     sleep = 0;
     delay(500);
-    //ROCKBLOCK_init();
+    // ROCKBLOCK_init();
 }
 
 bool IRIDIUM::sleepstatus()

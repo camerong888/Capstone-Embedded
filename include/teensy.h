@@ -87,7 +87,6 @@ public:
     void blinkRedLEDs();
 
     void blinkGreenLEDs();
-
 };
 
 #endif

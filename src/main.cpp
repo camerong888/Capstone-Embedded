@@ -22,7 +22,6 @@ void CreateNewFile();
 
 dataFormat_t data;
 
-
 // Module Objects
 TEENSY teensy(BAUDRATE);
 LOGGER logger(MIN_LOG_FREQUENCY);
@@ -42,7 +41,7 @@ void setup()
   delay(100);
   // GNSS Init
   gnss.Gnss_init();
-  gnss.setNavigationFrequency(1); //Produce one navigation solution per second
+  gnss.setNavigationFrequency(1); // Produce one navigation solution per second
   delay(250);
   // IMU Init
   imu.IMU_init();
@@ -59,7 +58,7 @@ void setup()
   rockblock.turnoff();
   // BT Debounce Handeling
   debouncerBt1.attach(BT1, INPUT_PULLUP);
-  debouncerBt1.interval(10);               // Set debounce interval to 5ms
+  debouncerBt1.interval(10);              // Set debounce interval to 5ms
   debouncerBt2.attach(BT2, INPUT_PULLUP); // Same for BT2
   debouncerBt2.interval(10);
   // Button Interrupt Handling

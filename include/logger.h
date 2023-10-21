@@ -28,7 +28,7 @@ private:
   uint32_t LastLogTime = 0;
   bool initialized = false;
   bool log;
-  
+
 public:
   LOGGER(uint32_t logfrequency);
 

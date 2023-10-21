@@ -10,14 +10,15 @@ GNSS_STATUS GNSS::Gnss_init()
     if (myGNSS.begin() == false)
     {
         DPRINTLN(F("u-blox GNSS not detected at default I2C address. Please check wiring. Freezing."));
-        while (1);
+        while (1)
+            ;
     }
 
     myGNSS.setI2COutput(COM_TYPE_UBX | COM_TYPE_NMEA); // Set the I2C port to output both NMEA and UBX messages
     myGNSS.saveConfigSelective(VAL_CFG_SUBSEC_IOPORT); // Save (only) the communications port settings to flash and BBR
 
     // This will pipe all NMEA sentences to the serial port so we can see them
-    //myGNSS.setNMEAOutputPort(Serial);
+    // myGNSS.setNMEAOutputPort(Serial);
     DPRINTLN(F("GNSS Module Initalized"));
 }
 
@@ -91,7 +92,8 @@ void GNSS::getTime()
 {
     int UTChour = myGNSS.getHour();
     int ESThour = UTChour - 4;
-    if (ESThour < 0) {
+    if (ESThour < 0)
+    {
         ESThour += 24;
     }
     DPRINT(ESThour);
@@ -103,7 +105,7 @@ void GNSS::getTime()
 
 byte GNSS::getFixType()
 {
-    //DPRINTLN(myGNSS.getFixType());
+    // DPRINTLN(myGNSS.getFixType());
     return myGNSS.getFixType();
 }
 
