@@ -7,7 +7,9 @@ TEENSY::TEENSY(int baudrate)
     delay(10);
   }
   Serial.begin(baudrate);
-  DPRINTLN(F("Initialized Serial Communication @ {baudrate} baud rate!"));
+  DPRINT(F("Initialized Serial Communication @ "));
+  DPRINT(baudrate);
+  DPRINTLN(" baud rate!");
   delay(10);
   Wire.begin();
   DPRINTLN(F("Initialized I2C!"));
@@ -247,4 +249,14 @@ void TEENSY::blinkGreenLEDs()
   LED_TOGGLE(GREEN3);
   delay(500);
   LEDs_off();
+}
+
+void TEENSY::orangeLEDs()
+{
+  digitalWrite(GREEN1, LOW);
+  digitalWrite(GREEN2, LOW);
+  digitalWrite(GREEN3, LOW);
+  digitalWrite(RED1, LOW);
+  digitalWrite(RED2, LOW);
+  digitalWrite(RED3, LOW);
 }

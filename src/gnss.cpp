@@ -61,7 +61,7 @@ int32_t GNSS::getGroundSpeed()
 int32_t GNSS::getHeading()
 {
     int32_t heading = myGNSS.getHeading();
-    DPRINT("Heading of Motion: ");
+    DPRINT("Heading: ");
     DPRINT(heading);
     DPRINT(F(" (degrees * 10^-5) "));
     return heading;

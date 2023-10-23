@@ -14,7 +14,7 @@
 #include <Bounce2.h>
 
 // Global Variables
-#define MIN_LOG_FREQUENCY 10000 // the max time length between logs (in ms)
+#define MIN_LOG_FREQUENCY 20000 // the max time length between logs (in ms)
 #define BAUDRATE 557600
 
 // Button Debounce Objects
@@ -41,13 +41,14 @@ dataFormat_t data;
 // Module Initialization
 void setup()
 {
-  // Logger Init
-  logger.LOGGER_init();
-  delay(50);
   // Teensy Init
   teensy.DEVICE_init();
   teensy.GPIO_init();
   teensy.LEDs_off();
+  teensy.orangeLEDs();
+  delay(50);
+  // Logger Init
+  logger.LOGGER_init();
   delay(50);
   // GNSS Init
   gnss.Gnss_init();
@@ -74,6 +75,7 @@ void setup()
   // Button Interrupt Handling
   attachInterrupt(digitalPinToInterrupt(BT1), handleBt1StateChange, CHANGE);
   attachInterrupt(digitalPinToInterrupt(BT2), handleBt2StateChange, CHANGE);
+  teensy.LEDs_off();
 }
 
 // Steady State
@@ -96,7 +98,9 @@ void loop()
   data.altitude = gnss.getAltitude();
   data.speed = gnss.getGroundSpeed();
   data.heading = gnss.getHeading();
+  gnss.flushPVT(); // Marks GNSS data as read/stale
   data.stepCount = imu.getStepCount();
+  delay(500);
 
   if (logger.Log_Status())
   {
@@ -104,8 +108,7 @@ void loop()
     logger.Write(date);
   }
 
-  gnss.flushPVT(); // Marks GNSS data as read/stale
-  delay(1000);
+  delay(500);
 }
 
 // Helper function definitions:
@@ -194,6 +197,7 @@ void CreateNewFile()
   String currentDate = gnss.getDate();
   logger.LOGGER_newFile(currentDate);
   logger.beginLogging();
+  teensy.blinkGreenLEDs();
 }
 
 void waitForLocationLock()

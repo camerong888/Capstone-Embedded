@@ -125,7 +125,7 @@ LOGGER_STATUS LOGGER::Write(String date)
     LOGGER_newFile(date);
     logFile = SD.open(fileName, FILE_WRITE);
   }
-
+  DPRINTLN("");
   DPRINT(F(" -- "));
   DPRINT(F("Added from buf "));
   if (usingBuf1)
@@ -178,11 +178,11 @@ LOGGER_STATUS LOGGER::Write(String date)
       logFile.print(F(","));
 
       logFile.print(messageBuf[i].stepCount);
-      // continue for all items in struct
       logFile.print(F("\n"));
+
       lastEntry = messageBuf[i];
     }
-
+    DPRINTLN("SD Card Write Successful...");
     LastLogTime = millis();
 
     // clear bufLength variables (must clear the opposite of whatever one is in use)

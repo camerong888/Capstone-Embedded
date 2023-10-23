@@ -7,7 +7,7 @@ data_set = set()
 duplicates_count = 0
 unique_data = []
 
-with open('LogFiles/10-20-23_Trip_#4.txt', 'r') as file:
+with open('LogFiles/10-23-23_Trip_#9.txt', 'r') as file:
     for line in file:
         cleaned_line = line.strip()
         if not cleaned_line:  # Skip empty lines
