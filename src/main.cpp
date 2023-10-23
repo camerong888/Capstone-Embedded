@@ -1,15 +1,23 @@
+/**
+ * @file main.cpp
+ * @author Cameron Gordon
+ * @brief Main driver program for a device interfacing with the Teensy platform. This program initializes and manages various modules such as a GNSS (Global Navigation Satellite System) for location tracking, an IMU (Inertial Measurement Unit) for motion tracking, and the RockBlock 9603 satellite modem for communication. It also provides functionality for data logging with debounce-supported button controls to manage logging, as well as an emergency SOS sequence leveraging the GNSS and RockBlock modules.
+ * @date 2023-10-21
+ */
+
 #include <teensy.h>
 #include <logger.h>
 #include <rockblock9603.h>
 #include <debug.h>
 #include <imu.h>
+#include <dataformat.h>
 #include <Bounce2.h>
 
 // Global Variables
 #define MIN_LOG_FREQUENCY 10000 // the max time length between logs (in ms)
 #define BAUDRATE 557600
 
-// Debounce objects
+// Button Debounce Objects
 Bounce debouncerBt1 = Bounce();
 Bounce debouncerBt2 = Bounce();
 
@@ -20,8 +28,6 @@ void SOS_Sequence();
 void waitForLocationLock();
 void CreateNewFile();
 
-dataFormat_t data;
-
 // Module Objects
 TEENSY teensy(BAUDRATE);
 LOGGER logger(MIN_LOG_FREQUENCY);
@@ -29,16 +35,20 @@ GNSS gnss;
 IMU imu;
 IRIDIUM rockblock;
 
+// Data Item
+dataFormat_t data;
+
+// Module Initialization
 void setup()
 {
   // Logger Init
   logger.LOGGER_init();
-  delay(100);
+  delay(50);
   // Teensy Init
   teensy.DEVICE_init();
   teensy.GPIO_init();
   teensy.LEDs_off();
-  delay(100);
+  delay(50);
   // GNSS Init
   gnss.Gnss_init();
   gnss.setNavigationFrequency(1); // Produce one navigation solution per second
@@ -49,7 +59,7 @@ void setup()
   imu.IMU_version();
   delay(100);
   imu.setReports();
-  delay(100);
+  delay(50);
   // Rockblock Init
   rockblock.ROCKBLOCK_init();
   delay(100);
@@ -66,6 +76,7 @@ void setup()
   attachInterrupt(digitalPinToInterrupt(BT2), handleBt2StateChange, CHANGE);
 }
 
+// Steady State
 void loop()
 {
   debouncerBt1.update();
@@ -93,7 +104,7 @@ void loop()
     logger.Write(date);
   }
 
-  gnss.flushPVT(); // Marks data as read/stale
+  gnss.flushPVT(); // Marks GNSS data as read/stale
   delay(1000);
 }
 
@@ -159,7 +170,7 @@ void handleBt2StateChange()
 void SOS_Sequence()
 {
   waitForLocationLock();
-  DPRINT("Sending message...");
+  DPRINT("Sending message... ");
   teensy.LED_TOGGLE(GREEN1);
   teensy.LED_TOGGLE(GREEN2);
   teensy.LED_TOGGLE(GREEN3);
@@ -180,7 +191,6 @@ void SOS_Sequence()
 void CreateNewFile()
 {
   waitForLocationLock();
-  DPRINT(gnss.getFixType());
   String currentDate = gnss.getDate();
   logger.LOGGER_newFile(currentDate);
   logger.beginLogging();

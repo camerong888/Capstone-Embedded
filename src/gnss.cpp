@@ -39,7 +39,7 @@ int32_t GNSS::getLongitude()
     int32_t longitude = myGNSS.getLongitude();
     DPRINT(F(" Long: "));
     DPRINT(longitude);
-    DPRINTLN(F(" (degrees * 10^-7)"));
+    DPRINT(F(" (degrees * 10^-7)"));
     return longitude;
 }
 int32_t GNSS::getAltitude()
@@ -47,17 +47,23 @@ int32_t GNSS::getAltitude()
     int32_t altitude = myGNSS.getAltitude();
     DPRINT(F(" Alt: "));
     DPRINT(altitude);
-    DPRINT(F(" (mm)"));
+    DPRINT(F(" (mm) "));
     return altitude;
 }
 int32_t GNSS::getGroundSpeed()
 {
     int32_t speed = myGNSS.getGroundSpeed();
+    DPRINT("Speed ");
+    DPRINT(speed);
+    DPRINT(F(" (mm/s) "));
     return speed;
 }
 int32_t GNSS::getHeading()
 {
     int32_t heading = myGNSS.getHeading();
+    DPRINT("Heading of Motion: ");
+    DPRINT(heading);
+    DPRINT(F(" (degrees * 10^-5) "));
     return heading;
 }
 byte GNSS::getSIV()
@@ -80,11 +86,13 @@ String GNSS::getDate()
     int year = myGNSS.getYear() % 100;
     char date[9]; // MM-DD-YY\0
     snprintf(date, sizeof(date), "%02d-%02d-%02d", month, day, year);
+    DPRINT("Date: ");
     DPRINT(month);
     DPRINT("-");
     DPRINT(day);
     DPRINT("-");
-    DPRINTLN(year);
+    DPRINT(year);
+    DPRINT(" ");
     return String(date);
 }
 
@@ -105,7 +113,6 @@ void GNSS::getTime()
 
 byte GNSS::getFixType()
 {
-    // DPRINTLN(myGNSS.getFixType());
     return myGNSS.getFixType();
 }
 

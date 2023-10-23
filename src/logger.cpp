@@ -139,6 +139,7 @@ LOGGER_STATUS LOGGER::Write(String date)
   DPRINT(bufLength);
   DPRINT(F(" -- \n"));
 
+  static dataFormat_t lastEntry;
   if (logFile)
   { // Need to update
     DPRINTLN(F("Writing to SD card..."));
@@ -146,6 +147,12 @@ LOGGER_STATUS LOGGER::Write(String date)
     // write all buffered messages to the SD card
     for (int i = 0; i < bufLength; i++)
     {
+      if (i == 0 && isSameEntry(lastEntry, messageBuf[i]))
+      {
+        // If the current entry is the same as the last written one, skip
+        DPRINTLN("Duplicate logging entry found...");
+        continue;
+      }
       logFile.print(messageBuf[i].gnssFixType);
       logFile.print(F(","));
 
@@ -173,6 +180,7 @@ LOGGER_STATUS LOGGER::Write(String date)
       logFile.print(messageBuf[i].stepCount);
       // continue for all items in struct
       logFile.print(F("\n"));
+      lastEntry = messageBuf[i];
     }
 
     LastLogTime = millis();
@@ -228,4 +236,17 @@ void LOGGER::pauseLogging()
 bool LOGGER::isOpen()
 {
   return static_cast<bool>(logFile);
+}
+
+bool LOGGER::isSameEntry(dataFormat_t &a, dataFormat_t &b)
+{
+  return (a.gnssFixType == b.gnssFixType) &&
+         (a.iridiumMessageCount == b.iridiumMessageCount) &&
+         (a.epochTime == b.epochTime) &&
+         (a.latitude == b.latitude) &&
+         (a.longitude == b.longitude) &&
+         (a.altitude == b.altitude) &&
+         (a.speed == b.speed) &&
+         (a.heading == b.heading) &&
+         (a.stepCount == b.stepCount);
 }

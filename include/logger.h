@@ -69,6 +69,8 @@ public:
   void pauseLogging();
 
   bool isOpen();
+
+  bool isSameEntry(dataFormat_t &a, dataFormat_t &b);
 };
 
 #endif

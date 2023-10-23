@@ -339,6 +339,6 @@ void IMU::getData()
 
 uint32_t IMU::getStepCount()
 {
-    DPRINTLN(StepCount);
+    //DPRINTLN(StepCount);
     return StepCount;
 }
