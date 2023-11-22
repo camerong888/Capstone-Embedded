@@ -203,7 +203,7 @@ void TEENSY::SOC_LED()
     }
   }
 
-  delay(500);
+  delay(250);
   LEDs_off();
 }
 
@@ -213,19 +213,19 @@ void TEENSY::blinkRedLEDs()
   LED_TOGGLE(RED1);
   LED_TOGGLE(RED2);
   LED_TOGGLE(RED3);
-  delay(500);
+  delay(250);
   LEDs_off();
-  delay(500);
+  delay(250);
   LED_TOGGLE(RED1);
   LED_TOGGLE(RED2);
   LED_TOGGLE(RED3);
-  delay(500);
+  delay(250);
   LEDs_off();
-  delay(500);
+  delay(250);
   LED_TOGGLE(RED1);
   LED_TOGGLE(RED2);
   LED_TOGGLE(RED3);
-  delay(500);
+  delay(250);
   LEDs_off();
 }
 
@@ -235,19 +235,19 @@ void TEENSY::blinkGreenLEDs()
   LED_TOGGLE(GREEN1);
   LED_TOGGLE(GREEN2);
   LED_TOGGLE(GREEN3);
-  delay(500);
+  delay(250);
   LEDs_off();
-  delay(500);
+  delay(250);
   LED_TOGGLE(GREEN1);
   LED_TOGGLE(GREEN2);
   LED_TOGGLE(GREEN3);
-  delay(500);
+  delay(250);
   LEDs_off();
-  delay(500);
+  delay(250);
   LED_TOGGLE(GREEN1);
   LED_TOGGLE(GREEN2);
   LED_TOGGLE(GREEN3);
-  delay(500);
+  delay(250);
   LEDs_off();
 }
 
