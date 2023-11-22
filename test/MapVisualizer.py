@@ -5,7 +5,8 @@ def convert_to_coord(value):
     return value / 1e7
 
 # Read data from the file
-with open("LogFiles/10-23-23_Trip_#9.txt", "r") as f:
+fileName = "LogFiles/11-01-23_Trip_#1.txt"
+with open(fileName, "r") as f:
     lines = f.readlines()
 
 # Parse latitudes, longitudes, and epoch times from the file
@@ -23,5 +24,5 @@ gmap = gmplot.GoogleMapPlotter(latitudes[0], longitudes[0], 15)
 gmap.plot(latitudes, longitudes, 'cornflowerblue', edge_width=2.5)
 
 # Save the plot to an HTML file
-gmap.draw("trip_path.html")
+gmap.draw(f"trip_path.html")
 

@@ -205,12 +205,7 @@ void SOS_Sequence()
 {
   waitForLocationLock();
   DPRINT("Sending message... ");
-  teensy.LED_TOGGLE(GREEN1);
-  teensy.LED_TOGGLE(GREEN2);
-  teensy.LED_TOGGLE(GREEN3);
-  teensy.LED_TOGGLE(RED1);
-  teensy.LED_TOGGLE(RED2);
-  teensy.LED_TOGGLE(RED3);
+  teensy.orangeLEDs();
   rockblock.send_message(gnss.getLatitude(), gnss.getLongitude());
   if (rockblock.getMessageResult() != ISBD_SUCCESS) // Blink LEDs if it worked or not...
   {
