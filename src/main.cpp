@@ -12,6 +12,7 @@
 #include <imu.h>
 #include <dataformat.h>
 #include <Bounce2.h>
+#include <Snooze.h>
 
 // Global Variables
 #define MIN_LOG_FREQUENCY 20000 // the max time length between logs (in ms)
@@ -20,6 +21,10 @@
 // Button Debounce Objects
 Bounce debouncerBt1 = Bounce();
 Bounce debouncerBt2 = Bounce();
+
+// Sleep configuration
+SnoozeDigital snoozeBt1;
+SnoozeBlock config_teensy(snoozeBt1);
 
 // Helper Functions
 void handleBt1StateChange();
@@ -38,24 +43,21 @@ IRIDIUM rockblock;
 // Data Item
 dataFormat_t data;
 
+bool initSuccess = 0;
+
 // Module Initialization
 void setup()
 {
   // Teensy Init
+  initSuccess = imu.IMU_init();
   teensy.DEVICE_init();
   teensy.GPIO_init();
   teensy.LEDs_off();
   teensy.orangeLEDs();
   delay(50);
-  // Logger Init
-  logger.LOGGER_init();
-  delay(50);
   // GNSS Init
   gnss.Gnss_init();
   gnss.setNavigationFrequency(1); // Produce one navigation solution per second
-  delay(250);
-  // IMU Init
-  imu.IMU_init();
   delay(100);
   imu.IMU_version();
   delay(100);
@@ -67,6 +69,10 @@ void setup()
   rockblock.firmware_version();
   delay(100);
   rockblock.turnoff();
+  // Logger Init
+  logger.LOGGER_init();
+  delay(50);
+  snoozeBt1.pinMode(BT1, INPUT_PULLUP, FALLING);
   // BT Debounce Handeling
   debouncerBt1.attach(BT1, INPUT_PULLUP);
   debouncerBt1.interval(10);              // Set debounce interval to 5ms
@@ -75,6 +81,12 @@ void setup()
   // Button Interrupt Handling
   attachInterrupt(digitalPinToInterrupt(BT1), handleBt1StateChange, CHANGE);
   attachInterrupt(digitalPinToInterrupt(BT2), handleBt2StateChange, CHANGE);
+  delay(250);
+  // IMU Init
+  if (!initSuccess)
+  {
+    Snooze.deepSleep(config_teensy);
+  }
   teensy.LEDs_off();
 }
 
@@ -88,7 +100,7 @@ void loop()
 
   imu.getSensorEvent(imu.sensorValue);
   imu.getData();
-
+  DPRINTLN("");
   String date = gnss.getDate();
   data.gnssFixType = gnss.getFixType();
   data.iridiumMessageCount = rockblock.getNumberMessagesSent();
@@ -112,14 +124,21 @@ void loop()
 }
 
 // Helper function definitions:
-
-// Updated interrupt handlers
 void handleBt1StateChange()
 {
+  static unsigned long lastPressTime = 0;
   debouncerBt1.update();
   delay(25);
   if (digitalRead(BT1) == HIGH && digitalRead(BT2) == LOW)
   {
+    lastPressTime = millis();
+    while (digitalRead(BT1) == HIGH)
+    {
+      if (millis() - lastPressTime > 3000)
+      {
+        Snooze.deepSleep(config_teensy);
+      }
+    }
     teensy.SOC_LED();
   }
   else if (digitalRead(BT1) == HIGH && digitalRead(BT2) == HIGH)
@@ -134,10 +153,22 @@ void handleBt1StateChange()
 
 void handleBt2StateChange()
 {
+  static unsigned long lastPressTime = 0;
+  bool closedFile = 0;
   debouncerBt2.update();
   delay(25);
   if (digitalRead(BT1) == LOW && digitalRead(BT2) == HIGH)
   {
+    lastPressTime = millis();
+    while (digitalRead(BT2) == HIGH && logger.isOpen())
+    {
+      if (millis() - lastPressTime > 3000)
+      {
+        logger.close();
+        closedFile = 1;
+        teensy.blinkGreenLEDs();
+      }
+    }
     if (logger.isOpen()) // Checks if file is open
     {
       if (logger.Log_Status())
@@ -155,7 +186,7 @@ void handleBt2StateChange()
         delay(100);
       }
     }
-    else
+    else if (!closedFile)
     {
       CreateNewFile();
     }
@@ -213,6 +244,7 @@ void waitForLocationLock()
     delay(500);
   }
 }
+
 
 #if DIAGNOSTICS
 void ISBDConsoleCallback(IridiumSBD *device, char c)

@@ -26,7 +26,8 @@ class LOGGER
 private:
   uint32_t LogFrequency = 1000;
   uint32_t LastLogTime = 0;
-  bool initialized = false;
+  uint32_t lastEpochTime = 0;
+  //bool initialized = false;
   bool log;
 
 public:
@@ -43,12 +44,6 @@ public:
    * @return LOGGER_STATUS
    */
   LOGGER_STATUS Write(String date);
-
-  /**
-   * @brief Resets the buffers, SD card
-   * @return LOGGER_STATUS
-   */
-  LOGGER_STATUS Reset();
 
   /**
    * @brief Adds the given message to the log buffer.
@@ -70,7 +65,8 @@ public:
 
   bool isOpen();
 
-  bool isSameEntry(dataFormat_t &a, dataFormat_t &b);
+  void close();
+
 };
 
 #endif

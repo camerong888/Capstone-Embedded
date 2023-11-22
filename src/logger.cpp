@@ -16,6 +16,20 @@ dataFormat_t messageBuf1[MAX_BUFFERED_MESSAGES];
 dataFormat_t messageBuf2[MAX_BUFFERED_MESSAGES];
 bool usingBuf1 = true;
 
+bool initialized = false; // flag to verify logging has been initialized
+
+static void reset()
+{
+  noInterrupts()
+      initialized = false;
+  buf1Length = 0;
+  buf2Length = 0;
+  memset((void *)messageBuf1, 0, MAX_BUFFERED_MESSAGES * sizeof(dataFormat_t));
+  memset((void *)messageBuf2, 0, MAX_BUFFERED_MESSAGES * sizeof(dataFormat_t));
+  usingBuf1 = true;
+  interrupts()
+}
+
 /**
  * @brief Sets the logging file name using the format log-NUM.txt, where NUM is either the current
  *        unix time if using the RTC or a valid numeric index starting from 0.
@@ -139,7 +153,6 @@ LOGGER_STATUS LOGGER::Write(String date)
   DPRINT(bufLength);
   DPRINT(F(" -- \n"));
 
-  static dataFormat_t lastEntry;
   if (logFile)
   { // Need to update
     DPRINTLN(F("Writing to SD card..."));
@@ -147,10 +160,27 @@ LOGGER_STATUS LOGGER::Write(String date)
     // write all buffered messages to the SD card
     for (int i = 0; i < bufLength; i++)
     {
-      if (i == 0 && isSameEntry(lastEntry, messageBuf[i]))
+      if (lastEpochTime == messageBuf[i].epochTime)
       {
         // If the current entry is the same as the last written one, skip
         DPRINTLN("Duplicate logging entry found...");
+        // clear bufLength variables (must clear the opposite of whatever one is in use)
+        if (usingBuf1)
+        {
+          DPRINTLN(F("Reset buffer 2"));
+          buf2Length = 0;
+        }
+        else
+        {
+          DPRINTLN(F("Reset buffer 1"));
+          buf1Length = 0;
+        }
+        logFile.flush();
+        continue;
+      }
+      else if (messageBuf[i].latitude == 0 && messageBuf[i].longitude == 0)
+      {
+        DPRINTLN("0,0 logging entry found...");
         continue;
       }
       logFile.print(messageBuf[i].gnssFixType);
@@ -180,7 +210,7 @@ LOGGER_STATUS LOGGER::Write(String date)
       logFile.print(messageBuf[i].stepCount);
       logFile.print(F("\n"));
 
-      lastEntry = messageBuf[i];
+      lastEpochTime = messageBuf[i].epochTime;
     }
     DPRINTLN("SD Card Write Successful...");
     LastLogTime = millis();
@@ -238,15 +268,8 @@ bool LOGGER::isOpen()
   return static_cast<bool>(logFile);
 }
 
-bool LOGGER::isSameEntry(dataFormat_t &a, dataFormat_t &b)
+void LOGGER::close()
 {
-  return (a.gnssFixType == b.gnssFixType) &&
-         (a.iridiumMessageCount == b.iridiumMessageCount) &&
-         (a.epochTime == b.epochTime) &&
-         (a.latitude == b.latitude) &&
-         (a.longitude == b.longitude) &&
-         (a.altitude == b.altitude) &&
-         (a.speed == b.speed) &&
-         (a.heading == b.heading) &&
-         (a.stepCount == b.stepCount);
+  log = 0;
+  logFile.close();
 }

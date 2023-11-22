@@ -10,14 +10,18 @@ IMU::~IMU()
 {
 }
 
-void IMU::IMU_init()
+bool IMU::IMU_init()
 {
-    while (!bno08x.begin_I2C())
+    if (!bno08x.begin_I2C())
+        {
+            DPRINTLN("Failed to find BNO085 Chip...");
+            return 0;
+        }
+    else
     {
-        DPRINTLN("Failed to find BNO085 Chip...");
-        delay(500);
+        DPRINTLN("BNO085 Initalized");
+        return 1;
     }
-    DPRINTLN("BNO085 Initalized");
 }
 
 void IMU::IMU_version()
@@ -339,6 +343,6 @@ void IMU::getData()
 
 uint32_t IMU::getStepCount()
 {
-    //DPRINTLN(StepCount);
+    // DPRINTLN(StepCount);
     return StepCount;
 }

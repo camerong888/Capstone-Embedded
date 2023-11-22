@@ -24,7 +24,7 @@ public:
   sh2_SensorValue_t sensorValue;
   IMU();
   ~IMU();
-  void IMU_init();
+  bool IMU_init();
   void IMU_version();
   void setReports();
   void wasReset();
